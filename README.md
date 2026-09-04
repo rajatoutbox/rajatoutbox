@@ -81,12 +81,16 @@ I care about infrastructure that is reproducible, observable, and documented as 
 ## GitHub Activity
 
 <p align="center">
-  <img height="165" src="https://github-readme-stats.vercel.app/api?username=rajatoutbox&show_icons=true&hide_border=true&bg_color=0b1220&title_color=38bdf8&icon_color=38bdf8&text_color=cbd5e1"/>
-  <img height="165" src="https://github-readme-streak-stats.herokuapp.com/?user=rajatoutbox&hide_border=true&background=0b1220&ring=38bdf8&fire=38bdf8&currStreakLabel=38bdf8&sideLabels=cbd5e1&currStreakNum=e2e8f0&sideNums=e2e8f0&dates=64748b"/>
+  <img height="165" src="./assets/stats.svg" alt="GitHub stats"/>
+  <img height="165" src="./assets/streak.svg" alt="GitHub streak"/>
 </p>
 
 <p align="center">
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=rajatoutbox&layout=compact&hide_border=true&bg_color=0b1220&title_color=38bdf8&text_color=cbd5e1"/>
+  <img src="./assets/top-langs.svg" alt="Top languages"/>
+</p>
+
+<p align="center">
+  <sub>Auto-refreshed every 6 hours by a <a href="./.github/workflows/refresh-stats.yml">GitHub Action</a> — served from this repo, not a third-party embed.</sub>
 </p>
 
 <br/>
