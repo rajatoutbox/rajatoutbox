@@ -23,7 +23,7 @@ jobs:
           card: stats
           options: username=rajatoutbox&show_icons=true&hide_border=true&bg_color=0b1220&title_color=38bdf8&icon_color=38bdf8&text_color=cbd5e1
           path: assets/stats.svg
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.STATS_TOKEN }}
 
       - name: Generate top languages card
         uses: readme-tools/github-readme-stats-action@v1
@@ -31,7 +31,7 @@ jobs:
           card: top-langs
           options: username=rajatoutbox&layout=compact&hide_border=true&bg_color=0b1220&title_color=38bdf8&text_color=cbd5e1
           path: assets/top-langs.svg
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.STATS_TOKEN }}
 
       # No equivalent in-Action generator exists for streaks yet, so this one still calls
       # the external service — but validates the response and keeps the last good file
