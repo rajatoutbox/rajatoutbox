@@ -11,27 +11,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch stats card
-        run: >
-          curl -sf
-          "https://github-readme-stats.vercel.app/api?username=rajatoutbox&show_icons=true&hide_border=true&bg_color=0b1220&title_color=38bdf8&icon_color=38bdf8&text_color=cbd5e1"
-          -o assets/stats.svg
+      - name: Fetch cards (skip any that fail, keep last good version)
+        run: |
+          mkdir -p assets
 
-      - name: Fetch streak card
-        run: >
-          curl -sf
-          "https://streak-stats.demolab.com/?user=rajatoutbox&hide_border=true&background=0b1220&ring=38bdf8&fire=38bdf8&currStreakLabel=38bdf8&sideLabels=cbd5e1&currStreakNum=e2e8f0&sideNums=e2e8f0&dates=64748b"
-          -o assets/streak.svg
+          fetch_card () {
+            name="$1"
+            url="$2"
+            tmp="assets/.tmp-${name}.svg"
 
-      - name: Fetch top languages card
-        run: >
-          curl -sf
-          "https://github-readme-stats.vercel.app/api/top-langs/?username=rajatoutbox&layout=compact&hide_border=true&bg_color=0b1220&title_color=38bdf8&text_color=cbd5e1"
-          -o assets/top-langs.svg
+            if curl -sS --retry 3 --retry-delay 5 --max-time 20 "$url" -o "$tmp"; then
+              if head -c 200 "$tmp" | grep -qi "<svg"; then
+                mv "$tmp" "assets/${name}.svg"
+                echo "✅ ${name}.svg updated"
+              else
+                echo "⚠️  ${name}: response wasn't a valid SVG, keeping previous version"
+                rm -f "$tmp"
+              fi
+            else
+              echo "⚠️  ${name}: fetch failed, keeping previous version"
+              rm -f "$tmp"
+            fi
+          }
+
+          fetch_card "stats" "https://github-readme-stats.vercel.app/api?username=rajatoutbox&show_icons=true&hide_border=true&bg_color=0b1220&title_color=38bdf8&icon_color=38bdf8&text_color=cbd5e1"
+          fetch_card "streak" "https://streak-stats.demolab.com/?user=rajatoutbox&hide_border=true&background=0b1220&ring=38bdf8&fire=38bdf8&currStreakLabel=38bdf8&sideLabels=cbd5e1&currStreakNum=e2e8f0&sideNums=e2e8f0&dates=64748b"
+          fetch_card "top-langs" "https://github-readme-stats.vercel.app/api/top-langs/?username=rajatoutbox&layout=compact&hide_border=true&bg_color=0b1220&title_color=38bdf8&text_color=cbd5e1"
 
       - name: Commit changes if any
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/stats.svg assets/streak.svg assets/top-langs.svg
+          git add assets/stats.svg assets/streak.svg assets/top-langs.svg 2>/dev/null || true
           git diff --quiet && git diff --staged --quiet || (git commit -m "chore: refresh GitHub stats" && git push)
