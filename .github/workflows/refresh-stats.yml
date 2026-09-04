@@ -14,36 +14,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch cards (skip any that fail, keep last good version)
+      # Generated in-Action — does NOT depend on the shared github-readme-stats.vercel.app
+      # instance (which has known rate-limit / downtime issues). This is the approach the
+      # upstream project itself now recommends.
+      - name: Generate stats card
+        uses: readme-tools/github-readme-stats-action@v1
+        with:
+          card: stats
+          options: username=rajatoutbox&show_icons=true&hide_border=true&bg_color=0b1220&title_color=38bdf8&icon_color=38bdf8&text_color=cbd5e1
+          path: assets/stats.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate top languages card
+        uses: readme-tools/github-readme-stats-action@v1
+        with:
+          card: top-langs
+          options: username=rajatoutbox&layout=compact&hide_border=true&bg_color=0b1220&title_color=38bdf8&text_color=cbd5e1
+          path: assets/top-langs.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # No equivalent in-Action generator exists for streaks yet, so this one still calls
+      # the external service — but validates the response and keeps the last good file
+      # instead of failing the whole job if it's briefly unavailable.
+      - name: Fetch streak card
         run: |
           mkdir -p assets
-
-          fetch_card () {
-            name="$1"
-            url="$2"
-            tmp="assets/.tmp-${name}.svg"
-
-            if curl -sS --retry 3 --retry-delay 5 --max-time 20 "$url" -o "$tmp"; then
-              if head -c 200 "$tmp" | grep -qi "<svg"; then
-                mv "$tmp" "assets/${name}.svg"
-                echo "✅ ${name}.svg updated"
-              else
-                echo "⚠️  ${name}: response wasn't a valid SVG, keeping previous version"
-                rm -f "$tmp"
-              fi
+          tmp="assets/.tmp-streak.svg"
+          if curl -sS --retry 3 --retry-delay 5 --max-time 20 "https://streak-stats.demolab.com/?user=rajatoutbox&hide_border=true&background=0b1220&ring=38bdf8&fire=38bdf8&currStreakLabel=38bdf8&sideLabels=cbd5e1&currStreakNum=e2e8f0&sideNums=e2e8f0&dates=64748b" -o "$tmp"; then
+            if head -c 200 "$tmp" | grep -qi "<svg"; then
+              mv "$tmp" assets/streak.svg
+              echo "✅ streak.svg updated"
             else
-              echo "⚠️  ${name}: fetch failed, keeping previous version"
+              echo "⚠️  streak: response wasn't a valid SVG, keeping previous version"
               rm -f "$tmp"
             fi
-          }
-
-          fetch_card "stats" "https://github-readme-stats.vercel.app/api?username=rajatoutbox&show_icons=true&hide_border=true&bg_color=0b1220&title_color=38bdf8&icon_color=38bdf8&text_color=cbd5e1"
-          fetch_card "streak" "https://streak-stats.demolab.com/?user=rajatoutbox&hide_border=true&background=0b1220&ring=38bdf8&fire=38bdf8&currStreakLabel=38bdf8&sideLabels=cbd5e1&currStreakNum=e2e8f0&sideNums=e2e8f0&dates=64748b"
-          fetch_card "top-langs" "https://github-readme-stats.vercel.app/api/top-langs/?username=rajatoutbox&layout=compact&hide_border=true&bg_color=0b1220&title_color=38bdf8&text_color=cbd5e1"
+          else
+            echo "⚠️  streak: fetch failed, keeping previous version"
+            rm -f "$tmp"
+          fi
 
       - name: Commit changes if any
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/stats.svg assets/streak.svg assets/top-langs.svg 2>/dev/null || true
+          git add assets/stats.svg assets/top-langs.svg assets/streak.svg 2>/dev/null || true
           git diff --quiet && git diff --staged --quiet || (git commit -m "chore: refresh GitHub stats" && git push)
